@@ -1,0 +1,14 @@
+water-quality-amr-analysis/
+├── data/               # Data directory (raw, processed, simulated)
+├── notebooks/          # Jupyter notebooks for analysis
+├── src/                # Source code
+│   ├── data/          # Data generation and preprocessing
+│   ├── features/      # Feature engineering
+│   ├── models/        # ML models
+│   ├── visualization/ # Plotting and dashboards
+│   └── utils/         # Utilities
+├── tests/             # Unit and integration tests
+├── config/            # Configuration files
+├── scripts/           # Executable scripts
+├── docs/              # Documentation
+└── reports/           # Generated reports and figures
