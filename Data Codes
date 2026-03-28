@@ -1,0 +1,81 @@
+# Data building and analysis tools for the project
+#----------------------------------------------------------------------------------------------
+# Basic data generation and structure building-------------------------------------------------
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from faker import Faker
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Generate synthetic data
+n = 100  # number of samples
+
+# Initialize Faker
+fake = Faker()
+
+# Create base dataframe
+data = pd.DataFrame({
+    "Sample_ID": [f"S{i+1}" for i in range(n)],
+    "pH": np.random.normal(loc=7.0, scale=0.5, size=n),
+    "Turbidity_NTU": np.random.uniform(1, 20, size=n),
+    "Bacterial_Count_CFU": np.random.lognormal(mean=6, sigma=0.8, size=n)
+})
+
+# Apply data constraints
+data["pH"] = data["pH"].clip(5.5, 9.5).round(2)
+data["Turbidity_NTU"] = data["Turbidity_NTU"].round(2)
+data["Bacterial_Count_CFU"] = data["Bacterial_Count_CFU"].astype(int)
+
+# Add relationship between bacterial count and resistance
+prob_resistance = np.where(
+    data["Bacterial_Count_CFU"] > 500000,
+    0.8,
+    0.3
+)
+
+data["Resistance"] = np.random.binomial(1, prob_resistance)
+data["Resistance"] = data["Resistance"].map({1: "Resistant", 0: "Non-resistant"})
+
+# Add categorical variables
+data["Market_Location"] = [fake.street_name() for _ in range(n)]
+data["Sampling_Date"] = pd.date_range(start="2024-01-01", periods=n, freq="D")
+
+# Display first few rows
+print(data.head())
+
+# Visualize pH distribution
+plt.figure(figsize=(10, 6))
+plt.hist(data["pH"], bins=15, edgecolor='black', alpha=0.7)
+plt.xlabel("pH")
+plt.ylabel("Frequency")
+plt.title("Distribution of Water pH")
+plt.grid(True, alpha=0.3)
+plt.show()
+
+# Additional visualizations to check relationships
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Bacterial count by resistance
+resistance_counts = data['Resistance'].value_counts()
+axes[0].bar(resistance_counts.index, resistance_counts.values, color=['red', 'green'])
+axes[0].set_title('Resistance Distribution')
+axes[0].set_ylabel('Count')
+
+# Bacterial count distribution
+axes[1].hist(data['Bacterial_Count_CFU'], bins=20, edgecolor='black', alpha=0.7)
+axes[1].set_title('Bacterial Count Distribution')
+axes[1].set_xlabel('CFU')
+axes[1].set_ylabel('Frequency')
+axes[1].ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+
+plt.tight_layout()
+plt.show()
+
+# Save dataset
+data.to_csv("synthetic_water_amr_data.csv", index=False)
+print("\nDataset saved to 'synthetic_water_amr_data.csv'")
+print(f"Dataset shape: {data.shape}")
+print(f"Columns: {list(data.columns)}")
